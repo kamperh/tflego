@@ -58,6 +58,8 @@ def build_encdec_lazydynamic(x, x_lengths, n_hidden, rnn_type="lstm",
     encoder_output, encoder_states = blocks.build_rnn(
         x, x_lengths, n_hidden, rnn_type, keep_prob, scope="rnn_encoder", **kwargs
         )
+    if rnn_type == "lstm":
+        encoder_states = encoder_states.h
 
     # Decoder
 
@@ -301,16 +303,16 @@ def main():
     print tf_encoder_states
     print tf_decoder_output
 
-    # np_encoder_states, np_decoder_output = np_encdec_lazydynamic(
-    #     test_data, lengths, W_encoder, b_encoder, W_decoder, b_decoder,
-    #     W_output, b_output, n_maxlength
-    #     )
+    np_encoder_states, np_decoder_output = np_encdec_lazydynamic(
+        test_data, lengths, W_encoder, b_encoder, W_decoder, b_decoder,
+        W_output, b_output, n_maxlength
+        )
 
-    # print np_encoder_states
-    # print np_decoder_output
+    print np_encoder_states
+    print np_decoder_output
 
-    # npt.assert_almost_equal(tf_encoder_states, np_encoder_states, decimal=5)
-    # npt.assert_almost_equal(tf_decoder_output, np_decoder_output, decimal=5)
+    npt.assert_almost_equal(tf_encoder_states, np_encoder_states, decimal=5)
+    npt.assert_almost_equal(tf_decoder_output, np_decoder_output, decimal=5)
 
 
     # # Encoder-decoder feeding back output as input in decoder
