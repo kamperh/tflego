@@ -240,7 +240,10 @@ def main():
 
     from blocks import NP_DTYPE, TF_DTYPE, NP_ITYPE, TF_ITYPE
 
+
     # Encoder-decoder feeding in encoder state at each decoder input
+
+    tf.reset_default_graph()
 
     # Random seed
     np.random.seed(2)
@@ -298,16 +301,16 @@ def main():
     print tf_encoder_states
     print tf_decoder_output
 
-    np_encoder_states, np_decoder_output = np_encdec_lazydynamic(
-        test_data, lengths, W_encoder, b_encoder, W_decoder, b_decoder,
-        W_output, b_output, n_maxlength
-        )
+    # np_encoder_states, np_decoder_output = np_encdec_lazydynamic(
+    #     test_data, lengths, W_encoder, b_encoder, W_decoder, b_decoder,
+    #     W_output, b_output, n_maxlength
+    #     )
 
-    print np_encoder_states
-    print np_decoder_output
+    # print np_encoder_states
+    # print np_decoder_output
 
-    npt.assert_almost_equal(tf_encoder_states, np_encoder_states, decimal=5)
-    npt.assert_almost_equal(tf_decoder_output, np_decoder_output, decimal=5)
+    # npt.assert_almost_equal(tf_encoder_states, np_encoder_states, decimal=5)
+    # npt.assert_almost_equal(tf_decoder_output, np_decoder_output, decimal=5)
 
 
     # # Encoder-decoder feeding back output as input in decoder

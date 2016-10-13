@@ -11,6 +11,8 @@ from blocks import *
 
 def test_feedforward():
 
+    tf.reset_default_graph()
+
     # Random seed
     np.random.seed(1)
     tf.set_random_seed(1)
@@ -63,6 +65,8 @@ def test_feedforward():
 
 
 def test_cnn():
+
+    tf.reset_default_graph()
 
     # Random seed
     np.random.seed(1)
@@ -118,6 +122,8 @@ def test_cnn():
 
 def test_rnn():
 
+    tf.reset_default_graph()
+
     # Random seed
     np.random.seed(1)
     tf.set_random_seed(1)
@@ -165,6 +171,8 @@ def test_rnn():
 
 
 def test_multi_rnn():
+
+    tf.reset_default_graph()
 
     # Random seed
     np.random.seed(1)
