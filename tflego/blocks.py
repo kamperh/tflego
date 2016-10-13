@@ -1,5 +1,5 @@
 """
-Functions for building neural networks.
+Functions for building the basic components of neural networks.
 
 Author: Herman Kamper
 Contact: kamperh@gmail.com
@@ -109,7 +109,7 @@ def build_cnn(x, input_shape, filter_shapes, pool_shapes, padding="VALID"):
     
     Parameters
     ----------
-    x : Tensor of shape [n_data, n_input]
+    x : Tensor [n_data, n_input]
         Input to the CNN, which is reshaped to match `input_shape`.
     input_shape : list
         The shape of the input to the CNN as [n_data, height, width, d_in].
@@ -136,8 +136,8 @@ def np_conv2d(x, filters, padding="valid"):
     
     Parameters
     ----------
-    x : matrix of shape [n_data, height, width, d_in]
-    filters : matrix of shape [filter_height, filter_width, d_in, d_out]
+    x : matrix [n_data, height, width, d_in]
+    filters : matrix [filter_height, filter_width, d_in, d_out]
     """
 
     import scipy.signal
@@ -172,7 +172,7 @@ def np_maxpool2d(x, pool_shape, ignore_border=False):
     
     Parameters
     ----------
-    x : matrix of shape (n_data, height, width, d_in)
+    x : matrix [n_data, height, width, d_in]
         Input over which pooling is performed.
     pool_shape : list
         Gives the pooling shape as (pool_height, pool_width).
@@ -217,11 +217,28 @@ def np_cnn(x, input_shape, weights, biases, pool_shapes):
 #                            RECURRENT LEGO BLOCKS                            #
 #-----------------------------------------------------------------------------#
 
-def build_rnn(x, x_lengths, n_hidden, rnn_type="lstm", keep_prob=1., **kwargs):
+def build_rnn_cell(n_hidden, rnn_type="lstm", **kwargs):
+    """
+    The `kwargs` parameters are passed directly to the constructor of the cell
+    class, e.g. peephole connections can be used by adding `use_peepholes=True`
+    when `rnn_type` is "lstm".
+    """
+    if rnn_type == "lstm":
+        cell_args = {"state_is_tuple": True}  # default LSTM parameters
+        cell_args.update(kwargs)
+        cell = tf.nn.rnn_cell.LSTMCell(n_hidden, **cell_args)
+    elif rnn_type == "gru" or rnn_type == "rnn":
+        cell = tf.nn.rnn_cell.BasicRNNCell(n_hidden, **kwargs)
+    else:
+        assert False, "Invalid RNN type: {}".format(rnn_type)
+    return cell
+
+
+def build_rnn(x, x_lengths, n_hidden, rnn_type="lstm", keep_prob=1., scope=None, **kwargs):
     """
     Build a recurrent neural network (RNN) with architecture `rnn_type`.
     
-    The RNN is dynamic, with `x_lengths` giving the lengths as a tensor with
+    The RNN is dynamic, with `x_lengths` giving the lengths as a Tensor with
     shape [n_data]. The input `x` should be padded to have shape [n_data,
     n_padded, d_in].
     
@@ -236,20 +253,13 @@ def build_rnn(x, x_lengths, n_hidden, rnn_type="lstm", keep_prob=1., **kwargs):
     """
     
     # RNN cell
-    if rnn_type == "lstm":
-        cell_args = {"state_is_tuple": True}  # default LSTM parameters
-        cell_args.update(kwargs)
-        cell = tf.nn.rnn_cell.LSTMCell(n_hidden, **cell_args)
-    elif rnn_type == "gru" or rnn_type == "rnn":
-        cell = tf.nn.rnn_cell.BasicRNNCell(n_hidden, **kwargs)
-    else:
-        assert False, "Invalid RNN type: {}".format(rnn_type)
+    cell = build_rnn_cell(n_hidden, rnn_type)
     
     # Dropout
     cell = tf.nn.rnn_cell.DropoutWrapper(cell, input_keep_prob=1., output_keep_prob=keep_prob)
     
     # Dynamic RNN
-    return tf.nn.dynamic_rnn(cell, x, sequence_length=x_lengths, dtype=TF_DTYPE)
+    return tf.nn.dynamic_rnn(cell, x, sequence_length=x_lengths, dtype=TF_DTYPE, scope=scope)
 
 
 def build_multi_rnn(x, x_lengths, n_hiddens, rnn_type="lstm", keep_prob=1., **kwargs):
