@@ -314,88 +314,37 @@ def main():
     import numpy.testing as npt
 
 
-    # RNN
+    # # RNN
 
-    tf.reset_default_graph()
-
-    # Random seed
-    np.random.seed(2)
-    tf.set_random_seed(2)
-
-    # Test data
-    n_input = 4
-    n_data = 3
-    n_maxlength = 5
-    test_data = np.zeros((n_data, n_maxlength, n_input), dtype=NP_DTYPE)
-    lengths = []
-    for i_data in xrange(n_data):
-        length = np.random.randint(1, n_maxlength + 1)
-        lengths.append(length)
-        test_data[i_data, :length, :] = np.random.randn(length, n_input)
-    lengths = np.array(lengths, dtype=NP_ITYPE)
-
-    # Model parameters
-    n_hidden = 6
-    rnn_type = "rnn"
-
-    # TensorFlow model
-    x = tf.placeholder(TF_DTYPE, [None, n_maxlength, n_input])
-    x_lengths = tf.placeholder(TF_DTYPE, [None])
-    rnn_outputs, rnn_states = build_rnn(x, x_lengths, n_hidden, rnn_type=rnn_type)
-    with tf.variable_scope("RNN/BasicRNNCell/Linear", reuse=True):
-        W = tf.get_variable("Matrix")
-        b = tf.get_variable("Bias")
-
-    # TensorFlow graph
-    init = tf.initialize_all_variables()
-    with tf.Session() as session:
-        session.run(init)
-        
-        # Output
-        tf_output = rnn_outputs.eval({x: test_data, x_lengths: lengths})
-        
-        # Weights
-        W = W.eval()
-        b = b.eval()
-
-    # Numpy model
-    np_output = np_rnn(test_data, lengths, W, b, n_maxlength)
-
-    npt.assert_almost_equal(tf_output, np_output, decimal=5)
-
-
-    # # CNN
+    # tf.reset_default_graph()
 
     # # Random seed
-    # np.random.seed(1)
-    # tf.set_random_seed(1)
+    # np.random.seed(2)
+    # tf.set_random_seed(2)
 
     # # Test data
-    # n_input = 28*28
+    # n_input = 4
     # n_data = 3
-    # test_data = np.asarray(np.random.randn(n_data, n_input), dtype=NP_DTYPE)
+    # n_maxlength = 5
+    # test_data = np.zeros((n_data, n_maxlength, n_input), dtype=NP_DTYPE)
+    # lengths = []
+    # for i_data in xrange(n_data):
+    #     length = np.random.randint(1, n_maxlength + 1)
+    #     lengths.append(length)
+    #     test_data[i_data, :length, :] = np.random.randn(length, n_input)
+    # lengths = np.array(lengths, dtype=NP_ITYPE)
 
     # # Model parameters
-    # input_shape = [-1, 28, 28, 1] # [n_data, height, width, d_in]
-    # filter_shapes = [
-    #     [5, 5, 1, 32],
-    #     [5, 5, 32, 64]
-    #     ]
-    # pool_shapes = [
-    #     [2, 2], 
-    #     [2, 2]
-    #     ]
+    # n_hidden = 6
+    # rnn_type = "rnn"
 
     # # TensorFlow model
-    # x = tf.placeholder(TF_DTYPE, [None, n_input])
-    # cnn = build_cnn(x, input_shape, filter_shapes, pool_shapes, padding="VALID")
-    # cnn = tf.contrib.layers.flatten(cnn)
-    # with tf.variable_scope("cnn_layer_0", reuse=True):
-    #     W_0 = tf.get_variable("W")
-    #     b_0 = tf.get_variable("b")
-    # with tf.variable_scope("cnn_layer_1", reuse=True):
-    #     W_1 = tf.get_variable("W")
-    #     b_1 = tf.get_variable("b")
+    # x = tf.placeholder(TF_DTYPE, [None, n_maxlength, n_input])
+    # x_lengths = tf.placeholder(TF_DTYPE, [None])
+    # rnn_outputs, rnn_states = build_rnn(x, x_lengths, n_hidden, rnn_type=rnn_type)
+    # with tf.variable_scope("RNN/BasicRNNCell/Linear", reuse=True):
+    #     W = tf.get_variable("Matrix")
+    #     b = tf.get_variable("Bias")
 
     # # TensorFlow graph
     # init = tf.initialize_all_variables()
@@ -403,19 +352,70 @@ def main():
     #     session.run(init)
         
     #     # Output
-    #     tf_output = cnn.eval({x: test_data})
+    #     tf_output = rnn_outputs.eval({x: test_data, x_lengths: lengths})
         
-    #     # Parameters
-    #     W_0 = W_0.eval()
-    #     b_0 = b_0.eval()
-    #     W_1 = W_1.eval()
-    #     b_1 = b_1.eval()
+    #     # Weights
+    #     W = W.eval()
+    #     b = b.eval()
 
     # # Numpy model
-    # np_output = np_cnn(test_data, input_shape, [W_0, W_1], [b_0, b_1], pool_shapes)
-    # np_output = np_output.reshape(np_output.shape[0], -1)
+    # np_output = np_rnn(test_data, lengths, W, b, n_maxlength)
 
     # npt.assert_almost_equal(tf_output, np_output, decimal=5)
+
+
+    # CNN
+
+    # Random seed
+    np.random.seed(1)
+    tf.set_random_seed(1)
+
+    # Test data
+    n_input = 28*28
+    n_data = 3
+    test_data = np.asarray(np.random.randn(n_data, n_input), dtype=NP_DTYPE)
+
+    # Model parameters
+    input_shape = [-1, 28, 28, 1] # [n_data, height, width, d_in]
+    filter_shapes = [
+        [5, 5, 1, 32],
+        [5, 5, 32, 64]
+        ]
+    pool_shapes = [
+        [2, 2], 
+        [2, 2]
+        ]
+
+    # TensorFlow model
+    x = tf.placeholder(TF_DTYPE, [None, n_input])
+    cnn = build_cnn(x, input_shape, filter_shapes, pool_shapes, padding="VALID")
+    cnn = tf.contrib.layers.flatten(cnn)
+    with tf.variable_scope("cnn_layer_0", reuse=True):
+        W_0 = tf.get_variable("W")
+        b_0 = tf.get_variable("b")
+    with tf.variable_scope("cnn_layer_1", reuse=True):
+        W_1 = tf.get_variable("W")
+        b_1 = tf.get_variable("b")
+
+    # TensorFlow graph
+    init = tf.initialize_all_variables()
+    with tf.Session() as session:
+        session.run(init)
+        
+        # Output
+        tf_output = cnn.eval({x: test_data})
+        
+        # Parameters
+        W_0 = W_0.eval()
+        b_0 = b_0.eval()
+        W_1 = W_1.eval()
+        b_1 = b_1.eval()
+
+    # Numpy model
+    np_output = np_cnn(test_data, input_shape, [W_0, W_1], [b_0, b_1], pool_shapes)
+    np_output = np_output.reshape(np_output.shape[0], -1)
+
+    npt.assert_almost_equal(tf_output, np_output, decimal=5)
 
 
     # # Feedforward neural network

@@ -15,7 +15,8 @@ import timeit
 
 def train_fixed_epochs(n_epochs, optimizer, train_loss_tensor,
         train_feed_iterator, feed_placeholders, test_loss_tensor=None,
-        test_feed_iterator=None, load_model_fn=None, save_model_fn=None):
+        test_feed_iterator=None, load_model_fn=None, save_model_fn=None,
+        config=None):
     """
     Train for a fixed number of epochs.
     
@@ -60,7 +61,7 @@ def train_fixed_epochs(n_epochs, optimizer, train_loss_tensor,
     saver = tf.train.Saver()
     if load_model_fn is None:
         init = tf.initialize_all_variables()
-    with tf.Session() as session:
+    with tf.Session(config=config) as session:
         
         # Start or restore session
         if load_model_fn is None:
@@ -75,7 +76,7 @@ def train_fixed_epochs(n_epochs, optimizer, train_loss_tensor,
             
             # Train model
             train_losses = []
-            for cur_feed in train_feed_iterator():
+            for cur_feed in train_feed_iterator:
                 _, cur_loss = session.run(
                     [optimizer, train_loss_tensor],
                     feed_dict=feed_dict(cur_feed)
@@ -85,7 +86,7 @@ def train_fixed_epochs(n_epochs, optimizer, train_loss_tensor,
             # Test model
             if test_loss_tensor is not None:
                 test_losses = []
-                for cur_feed in test_feed_iterator():
+                for cur_feed in test_feed_iterator:
                     cur_loss = session.run(
                         [test_loss_tensor],
                         feed_dict=feed_dict(cur_feed)

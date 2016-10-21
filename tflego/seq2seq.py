@@ -113,12 +113,23 @@ def build_encdec_outback(x, x_lengths, n_hidden, rnn_type="lstm", keep_prob=1.,
         encoder_states, n_hidden, n_output, maxlength, rnn_type, dtype=x.dtype, **kwargs
         )
 
+    if rnn_type == "lstm":
+        encoder_states = encoder_states.h  # to be consistent with the output of `build_encdec_lazydynamic`
     return (encoder_states, decoder_output)
 
 
 def build_rnn_decoder_outback(initial_state, n_hidden, n_output, maxlength,
-        rnn_type="lstm", initial_prev_output=None, dtype=None, **kwargs):
-    """The output is fed back as input in this decoder."""
+        rnn_type="lstm", initial_prev_output=None, dtype=None,
+        output_activation=None, **kwargs):
+    """
+    The output is fed back as input in this decoder.
+
+    Parameters
+    ----------
+    output_activation : function
+        Activation to apply at the output before passing it back as the input
+        for the next timestep. If not provided, no activation is applied.
+    """
 
     with tf.variable_scope("rnn_decoder") as scope:
     
@@ -147,6 +158,8 @@ def build_rnn_decoder_outback(initial_state, n_hidden, n_output, maxlength,
             output, state = cell(prev_output, state)
             with tf.variable_scope("linear_output"):
                 output = blocks.build_linear(output, n_output)
+                if output_activation is not None:
+                    output = output_activation(output)
             outputs.append(output)
             prev_output = output
 
