@@ -26,7 +26,8 @@ def train_fixed_epochs(n_epochs, optimizer, train_loss_tensor,
     ----------
     train_loss : Tensor
         The function that is optimized; should match the feed specified through
-        `train_feed_iterator` and `feed_placeholders`.
+        `train_feed_iterator` and `feed_placeholders`. This can also be a list
+        of Tensors, in which case the training loss is output as an array.
     train_feed_batch_iterator : generator
         Generates the values for the `feed_placeholders` for each training
         batch.
@@ -74,37 +75,82 @@ def train_fixed_epochs(n_epochs, optimizer, train_loss_tensor,
             print("Epoch {}:".format(i_epoch)),
             start_time = timeit.default_timer()
             
+            # # Train model
+            # train_losses = []
+            # for cur_feed in train_feed_iterator:
+            #     _, cur_loss = session.run(
+            #         [optimizer, train_loss_tensor],
+            #         feed_dict=feed_dict(cur_feed)
+            #         )
+            #     train_losses.append(cur_loss)
+            
+            # # Test model
+            # if test_loss_tensor is not None:
+            #     test_losses = []
+            #     for cur_feed in test_feed_iterator:
+            #         cur_loss = session.run(
+            #             [test_loss_tensor],
+            #             feed_dict=feed_dict(cur_feed)
+            #             )
+            #         test_losses.append(cur_loss)
+            #     test_loss = np.mean(test_losses)
+            #     record_dict["test_loss"].append((i_epoch, test_loss))
+
             # Train model
             train_losses = []
-            for cur_feed in train_feed_iterator:
-                _, cur_loss = session.run(
-                    [optimizer, train_loss_tensor],
-                    feed_dict=feed_dict(cur_feed)
-                    )
-                train_losses.append(cur_loss)
-            
+            if not isinstance(train_loss_tensor, (list, tuple)):
+                for cur_feed in train_feed_iterator:
+                    _, cur_loss = session.run(
+                        [optimizer, train_loss_tensor],
+                        feed_dict=feed_dict(cur_feed)
+                        )
+                    train_losses.append(cur_loss)
+                train_loss = np.mean(train_losses)
+            else:
+                for cur_feed in train_feed_iterator:
+                    cur_loss = session.run(
+                        [optimizer] + train_loss_tensor,
+                        feed_dict=feed_dict(cur_feed)
+                        )
+                    cur_loss.pop(0)  # remove the optimizer
+                    cur_loss = np.array(cur_loss)
+                    train_losses.append(cur_loss)
+                train_loss = np.mean(train_losses, axis=0)
+            record_dict["train_loss"].append((i_epoch, train_loss))
+
             # Test model
             if test_loss_tensor is not None:
                 test_losses = []
-                for cur_feed in test_feed_iterator:
-                    cur_loss = session.run(
-                        [test_loss_tensor],
-                        feed_dict=feed_dict(cur_feed)
-                        )
-                    test_losses.append(cur_loss)
-                test_loss = np.mean(test_losses)
+                if not isinstance(test_loss_tensor, (list, tuple)):
+                    for cur_feed in test_feed_iterator:
+                        cur_loss = session.run(
+                            [test_loss_tensor],
+                            feed_dict=feed_dict(cur_feed)
+                            )
+                        test_losses.append(cur_loss)
+                    test_loss = np.mean(test_losses)
+                else:
+                    for cur_feed in test_feed_iterator:
+                        cur_loss = session.run(
+                            test_loss_tensor,
+                            feed_dict=feed_dict(cur_feed)
+                            )
+                        cur_loss = np.array(cur_loss)
+                        test_losses.append(cur_loss)
+                    test_loss = np.mean(test_losses, axis=0)
                 record_dict["test_loss"].append((i_epoch, test_loss))
 
             # Statistics
             end_time = timeit.default_timer()
             epoch_time = end_time - start_time
-            train_loss = np.mean(train_losses)
             record_dict["epoch_time"].append((i_epoch, epoch_time))
-            record_dict["train_loss"].append((i_epoch, train_loss))
             
-            log = "{:.3f} sec, train loss: {:.5f}".format(epoch_time, train_loss)
+            # log = "{:.3f} sec, train loss: {:.5f}".format(epoch_time, train_loss)
+            log = "{:.3f} sec".format(epoch_time)
+            log += ", train loss: " + str(train_loss)
             if test_loss is not None:
-                log += ", test loss: {:.5f}".format(test_loss)
+                # log += ", test loss: {:.5f}".format(test_loss)
+                log += ", test loss: " + str(test_loss)
             print log
             sys.stdout.flush()
 
