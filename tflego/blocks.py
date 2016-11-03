@@ -417,6 +417,8 @@ def main():
 
     npt.assert_almost_equal(tf_output, np_output, decimal=5)
 
+    print tf_output
+
 
     # # Feedforward neural network
 

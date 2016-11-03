@@ -16,7 +16,7 @@ import timeit
 def train_fixed_epochs(n_epochs, optimizer, train_loss_tensor,
         train_feed_iterator, feed_placeholders, test_loss_tensor=None,
         test_feed_iterator=None, load_model_fn=None, save_model_fn=None,
-        config=None):
+        config=None, epoch_offset=0):
     """
     Train for a fixed number of epochs.
     
@@ -72,7 +72,7 @@ def train_fixed_epochs(n_epochs, optimizer, train_loss_tensor,
     
         # Train
         for i_epoch in xrange(n_epochs):
-            print("Epoch {}:".format(i_epoch)),
+            print("Epoch {}:".format(epoch_offset + i_epoch)),
             start_time = timeit.default_timer()
             
             # # Train model
