@@ -70,7 +70,7 @@ def test_siamese_triplets():
     x_d = tf.placeholder(TF_DTYPE, [None, n_input])
     keep_prob = 1.0
     model_param_dict = {"n_hiddens": n_hiddens, "keep_prob": keep_prob}
-    model_a, model_s, model_d = build_siamese_triplet(
+    model_a, model_s, model_d = build_siamese_triplets(
         x_a, x_s, x_d, blocks.build_feedforward, model_param_dict
         )
 

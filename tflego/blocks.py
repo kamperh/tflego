@@ -3,7 +3,7 @@ Functions for building the basic components of neural networks.
 
 Author: Herman Kamper
 Contact: kamperh@gmail.com
-Date: 2016
+Date: 2016, 2017
 """
 
 import numpy as np
