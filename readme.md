@@ -1,10 +1,9 @@
-My TensorFlow Lego
-==================
+TensorFlow Lego
+===============
 
 
 Examples
 --------
-- 
 - Many of the tests in `tflego/` give examples of how to use the models.
 
 
