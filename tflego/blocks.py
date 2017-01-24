@@ -116,7 +116,8 @@ def build_cnn(x, input_shape, filter_shapes, pool_shapes, padding="VALID"):
     filter_shapes : list of list
         The filter shape of each layer as [height, width, d_in, d_out].
     pool_shape : list of list
-        The pool shape of each layer as [height, width].
+        The pool shape of each layer as [height, width]. If None, then no
+        pooling is applied.
     """
     assert len(filter_shapes) == len(pool_shapes)
     x = tf.reshape(x, input_shape)
@@ -124,7 +125,9 @@ def build_cnn(x, input_shape, filter_shapes, pool_shapes, padding="VALID"):
     for i_layer, (filter_shape, pool_shape) in enumerate(zip(filter_shapes, pool_shapes)):
         with tf.variable_scope("cnn_layer_{}".format(i_layer)):
             cnn = build_conv2d_relu(cnn, filter_shape, padding=padding)
-            cnn = build_maxpool2d(cnn, pool_shape, padding=padding)
+            if pool_shape is not None:
+                cnn = build_maxpool2d(cnn, pool_shape, padding=padding)
+            print "CNN layer {} shape: {}".format(i_layer, cnn.get_shape().as_list())
     return cnn
 
 
