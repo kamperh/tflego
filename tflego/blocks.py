@@ -44,6 +44,7 @@ def build_feedforward(x, n_hiddens, keep_prob=1.):
             x = build_linear(x, n_hidden)
             x = tf.nn.relu(x)
             x = tf.nn.dropout(x, keep_prob)
+            print "Feedforward layer {} shape: {}".format(i_layer, x.get_shape().as_list())
     return x
 
 
@@ -72,20 +73,33 @@ def np_feedforward(x, weights, biases):
 def build_conv2d_relu(x, filter_shape, stride=1, padding="VALID"):
     """Single convolutional layer with bias and ReLU activation."""
     W = tf.get_variable(
-        "W", filter_shape, dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer()
+        "W", filter_shape, dtype=TF_DTYPE, initializer=tf.contrib.layers.xavier_initializer()
         )
     b = tf.get_variable(
-        "b", [filter_shape[-1]], dtype=tf.float32, initializer=tf.random_normal_initializer()
+        "b", [filter_shape[-1]], dtype=TF_DTYPE, initializer=tf.random_normal_initializer()
         )
     x = tf.nn.conv2d(x, W, strides=[1, stride, stride, 1], padding=padding)
     x = tf.nn.bias_add(x, b)
     return tf.nn.relu(x)
 
 
-def build_maxpool2d(x, pool_shape, padding="VALID"):
+def build_conv2d_linear(x, filter_shape, stride=1, padding="VALID"):
+    """Single convolutional layer with bias and linear activation."""
+    W = tf.get_variable(
+        "W", filter_shape, dtype=TF_DTYPE, initializer=tf.contrib.layers.xavier_initializer()
+        )
+    b = tf.get_variable(
+        "b", [filter_shape[-1]], dtype=TF_DTYPE, initializer=tf.random_normal_initializer()
+        )
+    x = tf.nn.conv2d(x, W, strides=[1, stride, stride, 1], padding=padding)
+    x = tf.nn.bias_add(x, b)
+    return x
+
+
+def build_maxpool2d(x, pool_shape, padding="VALID", name=None):
     """Max pool over `x` using a `pool_shape` of [pool_height, pool_width]."""
     ksize = [1,] + pool_shape + [1,]
-    return tf.nn.max_pool(x, ksize=ksize, strides=ksize, padding=padding)
+    return tf.nn.max_pool(x, ksize=ksize, strides=ksize, padding=padding, name=name)
 
 
 def build_cnn(x, input_shape, filter_shapes, pool_shapes, padding="VALID"):
@@ -95,7 +109,7 @@ def build_cnn(x, input_shape, filter_shapes, pool_shapes, padding="VALID"):
     As an example, a CNN with single-channel [28, 28] shaped input with two
     convolutional layers can be constructud using:
     
-        x = tf.placeholder(tf.float32, [None, 28*28])
+        x = tf.placeholder(TF_DTYPE, [None, 28*28])
         input_shape = [-1, 28, 28, 1] # [n_data, height, width, d_in]
         filter_shapes = [
             [5, 5, 1, 32],  # filter shape of first layer
@@ -212,7 +226,10 @@ def np_cnn(x, input_shape, weights, biases, pool_shapes):
     """
     cnn = x.reshape(input_shape)
     for W, b, pool_shape in zip(weights, biases, pool_shapes):
-        cnn = np_relu(np_maxpool2d(np_conv2d(cnn, W) + b, pool_shape))
+        if pool_shape is not None:
+            cnn = np_relu(np_maxpool2d(np_conv2d(cnn, W) + b, pool_shape))
+        else:
+            cnn = np_relu(np_conv2d(cnn, W) + b)
     return cnn
 
 
